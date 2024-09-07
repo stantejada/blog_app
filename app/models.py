@@ -54,7 +54,7 @@ class Post(db.Model):
     category_id: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer, sa.ForeignKey('categories.id'))
     
     #relacion de muchos a muchos
-    tags: so.Mapped[List['Tag']] = so.relationship('Post', backref='category', lazy=True)
+    tags: so.Mapped[List['Tag']] = so.relationship('Tag', secondary=post_tags, back_populates='posts')
 
 
 #category models
