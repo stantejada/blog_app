@@ -15,6 +15,13 @@ post_tags = sa.Table(
     sa.Column('tag_id', sa.Integer, sa.ForeignKey('tags.id'), primary_key=True)
 )
 
+user_roles = sa.Table(
+    'user_roles',
+    db.Model.metadata,
+    sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id'), primary_key=True),
+    sa.Column('role_id', sa.Integer, sa.ForeignKey('roles.id'), primary_key=True)
+)
+
 #User models
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -26,6 +33,10 @@ class User(UserMixin, db.Model):
     
     bio: so.Mapped[Optional[str]] = so.mapped_column(sa.Text)
     
+    roles: so.Mapped[List['Role']] = so.relationship('Role',
+                                                     secondary=user_roles,
+                                                     back_populates='users')
+    
     posts: so.Mapped[List['Post']] = so.relationship('Post', backref='user', lazy=True)
     
     
@@ -35,7 +46,17 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password=password)
   
-
+    def has_role(self, role_name):
+        return any(role.name == role_name for role in self.roles)
+    
+    def add_role(self, role):
+        if not self.has_role(role.name):
+            self.roles.append(role)
+    
+    def remove_role(self, role):
+        if self.has_role(role.name):
+            self.roles.remove(role)
+    
 #post Models  
 class Post(db.Model):
     __tablename__ = 'posts'
@@ -75,6 +96,16 @@ class Tag(db.Model):
     name: so.Mapped[str] = so.mapped_column(sa.String(100), nullable=False, unique=True)
     
     posts: so.Mapped[List['Post']] = so.relationship('Post', secondary=post_tags, back_populates='tags')
+    
+class Role(db.Model):
+    __tablename__ ='roles'
+    
+    id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key = True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(50), unique=True, nullable=False)
+    description: so.Mapped[str] = so.mapped_column(sa.Text)
+    
+    #many to many
+    users: so.Mapped[List['User']] = so.relationship('User', secondary=user_roles, back_populates='roles')
 
 @login.user_loader
 def load_user(id):
