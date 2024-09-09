@@ -49,6 +49,7 @@
             <!-- if user is admin -->
             {% if current_user.has_role('Admin') %}
             <a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a class="dropdown-item" href="{{ url_for('new_category') }}">Add Categories</a>
             {% endif %}
 
             <div class="dropdown-divider"></div>

@@ -4,3 +4,4 @@ flask-migrate
 flask-login
 Flask-WTF
 email-validator
+python-slugify

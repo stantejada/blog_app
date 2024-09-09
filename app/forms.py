@@ -1,9 +1,10 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectMultipleField, SelectField
+from wtforms.validators import DataRequired, ValidationError, Email, EqualTo, Optional
 import sqlalchemy as sa 
 from app import db
-from app.models import User
+from app.models import User, Post, Tag, Category
+from slugify import slugify
 
 
 
@@ -40,6 +41,34 @@ class RegisterForm(FlaskForm):
             raise ValidationError('Please use a different email')
 
 
+class PostForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    body = TextAreaField('Body', validators=[DataRequired()])
+    
+    
+    category_id = SelectField('Category', coerce=int, validators=[Optional()])
+    
+    tags = SelectMultipleField('Tags', coerce=int, validators=[Optional()])
 
+    
+    is_published = BooleanField('Publish?')
+    submit = SubmitField('Publish')
 
-
+    def validate_slug(self, slug):
+        if Post.query.filter_by(slug=slug.data).first():
+            raise ValidationError('Slug already in use')
+        
+        
+class CategoryForm(FlaskForm):
+    name = StringField('Category', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    submit = SubmitField('Add')
+    
+    def validate_category(self,name):
+        category = db.session.scalar(
+            sa.select(Category).where(
+                Category.name == name.data
+            )
+        )
+        if category is not None:
+            raise ValidationError('Category already exist!')

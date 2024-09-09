@@ -5,6 +5,8 @@ from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from datetime import datetime, timezone
+from slugify import slugify
+from sqlalchemy import event
 
 
 
@@ -77,6 +79,17 @@ class Post(db.Model):
     #relacion de muchos a muchos
     tags: so.Mapped[List['Tag']] = so.relationship('Tag', secondary=post_tags, back_populates='posts')
 
+#Automatically generate slug before saving
+@event.listens_for(Post, 'before_insert')
+def generate_slug_before_insert(mapper, connection, target):
+    if not target.slug:
+        target.slug = slugify(target.title)
+        
+        
+@event.listens_for(Post, 'before_update')
+def generate_slug_before_insert(mapper, connection, target):
+    if target.title:
+        target.slug = slugify(target.title)
 
 #category models
 class Category(db.Model):

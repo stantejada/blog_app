@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+<h1>New Post</h1>
+
+<form action="" , method="post">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.title.label }} <br>
+        {{ form.title(size=64) }} <br>
+        {% for error in form.title.errors %}
+        <span>[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.body.label }} <br>
+        {{ form.body(size=64) }} <br>
+        {% for error in form.body.errors %}
+        <span>[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.category_id.label }} <br>
+        {{ form.category_id(size=64) }} <br>
+        {% for error in form.category_id.errors %}
+        <span>[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.tags.label }} <br>
+        {{ form.tags(size=64) }} <br>
+        {% for error in form.tags.errors %}
+        <span>[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+</form>
+
+
+{% endblock %}
