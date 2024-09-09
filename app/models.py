@@ -7,7 +7,7 @@ from flask_login import UserMixin
 from datetime import datetime, timezone
 from slugify import slugify
 from sqlalchemy import event
-
+from hashlib import md5
 
 
 post_tags = sa.Table(
@@ -41,6 +41,9 @@ class User(UserMixin, db.Model):
     
     posts: so.Mapped[List['Post']] = so.relationship('Post', backref='user', lazy=True)
     
+    def avatar(self, size):
+        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f"https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}"
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password=password)

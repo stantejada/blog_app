@@ -9,6 +9,7 @@ from functools import wraps
 from slugify import slugify
 import time
 
+#Check role of user
 def role_required(role_name):
     def decorator(func):
         @wraps(func)
@@ -20,13 +21,14 @@ def role_required(role_name):
     return decorator
 
 
+#Main page
 @app.route('/')
 @app.route('/home')
 @login_required
 def home():
     return render_template('index.html', title='Home')
 
-
+#Login user
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -47,7 +49,7 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-
+#Register new users
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -62,7 +64,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-
+#Asign role: Just user with Admin role is able to edit role
 @app.route('/assign_role/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def assign_role(user_id):
@@ -87,7 +89,7 @@ def assign_role(user_id):
         return redirect(url_for('user_list'))
     return render_template('assign_role.html', title='Assign Roles' ,user=user, roles=roles)
 
-
+#Dasboard: endpoint able just for admin users
 @app.route('/admin/dashboard')
 @login_required
 @role_required('Admin')
@@ -97,6 +99,7 @@ def admin_dashboard():
         return redirect(url_for('home'))
     return render_template('dashboard.html')
 
+#Create new post
 @app.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def new_post():
@@ -130,6 +133,14 @@ def new_post():
         flash('Post created successfully!', 'success')
         return redirect(url_for('home'))
     return render_template('create_post.html', form=form)
+
+#Update post by id
+@app.route('/post/update/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def update_post():
+    
+    pass
+
 
 @app.route('/category/new', methods=['GET', 'POST'])
 @login_required
