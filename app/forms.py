@@ -57,7 +57,8 @@ class PostForm(FlaskForm):
     def validate_slug(self, slug):
         if Post.query.filter_by(slug=slug.data).first():
             raise ValidationError('Slug already in use')
-        
+
+
         
 class CategoryForm(FlaskForm):
     name = StringField('Category', validators=[DataRequired()])

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+<h1>{{ post.title }}</h1>
+<p>{{ post.author_id }}, created: {{ post.create_at }}</p>
+
+<p>{{ post.body }}</p>
+
+<p>Category: {{ post.category_id }}</p>
+<p>Tags: {{ post.tags }}</p>
+
+{% endblock %}

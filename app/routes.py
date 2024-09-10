@@ -124,6 +124,7 @@ def new_post():
             slug=slug,
             body=form.body.data,
             category_id = form.category_id.data,
+            tags = form.tags.data,
             author_id = current_user.id
         )
         #Save in DB
@@ -134,13 +135,59 @@ def new_post():
         return redirect(url_for('home'))
     return render_template('create_post.html', form=form)
 
-#Update post by id
-@app.route('/post/update/<int:post_id>', methods=['GET', 'POST'])
+#Read post by slug
+@app.route('/post/<slug>')
 @login_required
-def update_post():
-    
-    pass
+def read_post(slug):
+    post = Post.query.filter_by(slug=slug).first_or_404()
+    return render_template('_post.html', post=post)
 
+#Read All posts
+@app.route('/posts')
+@login_required
+def read_all_posts():
+    posts = Post.query.all()
+    return render_template('posts.html', posts=posts)
+
+#Update post by slug
+@app.route('/post/<slug>/edit', methods=['GET', 'POST'])
+@login_required
+def update_post(slug):
+    post = Post.query.filter_by(slug=slug).first_or_404()
+    form = PostForm(obj=post)
+    
+    if post.author_id != current_user.id and not current_user.has_role('Admin'):
+        flash('You do not have permission to delete this post.', 'danger')
+        return redirect(url_for('home'))
+    
+    form.category_id.choices = [(c.id, c.name) for c in Category.query.all()]
+    
+    form.tags.choices = [(t.id, t.name) for t in Tag.query.all()]
+    
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.body = form.body.data
+        post.category_id = form.category_id.data
+        post.tags = form.tags.data
+        db.session.commit()
+        flash('Post updated successfully!', 'success')
+        return redirect(url_for('home', id=post.id))
+    return render_template('edit_post.html', form=form)
+
+
+#delete post
+@app.route('/post/<slug>/delete')
+@login_required
+def delete_post(slug):
+    post = Post.query.filter_by(slug=slug).first_or_404()
+    
+    if post.author_id != current_user.id and not current_user.has_role('Admin'):
+        flash('You do not have permission to delete this post.', 'danger')
+        return redirect(url_for('home'))
+    
+    db.session.delete(post)
+    db.session.commit()
+    return redirect(url_for('home'))
 
 @app.route('/category/new', methods=['GET', 'POST'])
 @login_required
