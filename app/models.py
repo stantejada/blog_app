@@ -39,7 +39,7 @@ class User(UserMixin, db.Model):
                                                      secondary=user_roles,
                                                      back_populates='users')
     
-    posts: so.Mapped[List['Post']] = so.relationship('Post', backref='user', lazy=True)
+    posts: so.Mapped[List['Post']] = so.relationship('Post', back_populates='author')
     
     def avatar(self, size):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
@@ -76,6 +76,8 @@ class Post(db.Model):
     is_published: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
     
     author_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('users.id'), nullable=False)
+    
+    author: so.Mapped['User'] = so.relationship('User', back_populates='posts')
     
     category_id: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer, sa.ForeignKey('categories.id'))
     

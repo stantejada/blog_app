@@ -13,9 +13,9 @@
         </div>
 
         <div class="col-8">
-            <h2>{{ post.title }}</h2>
+            <h2><a href="{{ url_for('read_post', slug=post.slug) }}">{{ post.title }}</a></h2>
             <p>{{ post.body }}</p>
-            <p><i>{{post.author_id}} create at: {{post.create_at}}</i></p>
+            <p><i>{{ post.author.username }} create at: {{post.create_at}}</i></p>
         </div>
     </div>
     {% endfor %}
