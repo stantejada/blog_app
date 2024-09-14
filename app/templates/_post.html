@@ -3,13 +3,34 @@
 
 
 {% block content %}
+<div class="container mb-5">
+    <div class="card shadow-sm"></div>
+    <div class="card-body">
+        <!-- title section -->
+        <h1 class="card-title">{{ post.title }}</h1>
+        <p class="card-subtitle text-muted mb-3">By <strong>{{ post.author.username }}</strong> | created on {{
+            post.create_at.strftime('%B %d, %Y') }}</p>
 
-<h1>{{ post.title }}</h1>
-<p>{{ post.author_id }}, created: {{ post.create_at }}</p>
+        <!-- Body content -->
+        <p class="card-text">{{ post.body }}</p>
 
-<p>{{ post.body }}</p>
+        <!--Category-->
+        <p class="mt-4 mb-2">
+            <span class="badget bg-primary">Category: {{ post.category_id }}</span>
+        </p>
 
-<p>Category: {{ post.category_id }}</p>
-<p>Tags: {{ post.tags }}</p>
+        <p>
+            <span class="badge bg-secondary">Tags: {{ post.tags }}</span>
+        </p>
 
-{% endblock %}
+        {% if current_user.is_authenticated and current_user.id == post.author.id %}
+
+        <div class="mt-4">
+            <a href="{{ url_for('update_post', slug=post.slug) }}" class="btn btn-outline-primary">Edit post</a>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    {% endblock %}

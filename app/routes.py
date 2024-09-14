@@ -48,6 +48,11 @@ def login():
         return redirect(url_for('home'))
     return render_template('login.html', title='Sign In', form=form)
 
+#Profile
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
 
 #Register new users
 @app.route('/register', methods=['GET', 'POST'])
@@ -133,6 +138,8 @@ def new_post():
         
         flash('Post created successfully!', 'success')
         return redirect(url_for('home'))
+    else:
+        print(form.errors)
     return render_template('create_post.html', form=form)
 
 #Read post by slug

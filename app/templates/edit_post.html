@@ -7,34 +7,34 @@
 <form action="" method="post">
     {{ form.hidden_tag() }}
     <p>
-        {{ form.title.label }} <br>
-        {{ form.title(size=32) }} <br>
+        {{ form.title.label(class='form-label') }} <br>
+        {{ form.title(size=32, class='form-cotrol') }} <br>
         {% for error in form.title.errors %}
         <span>[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
-        {{ form.body.label }} <br>
-        {{ form.body(size=254) }} <br>
+        {{ form.body.label(class='form-label') }} <br>
+        {{ form.body(rows=10, cols=80, class='form-control') }} <br>
         {% for error in form.body.errors %}
         <span>[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
-        {{ form.category_id.label }} <br>
-        {{ form.category_id(size=128) }} <br>
+        {{ form.category_id.label(class='form-label') }} <br>
+        {{ form.category_id(size=1, class='form-control') }} <br>
         {% for error in form.category_id.errors %}
         <span>[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
-        {{ form.tags.label }} <br>
-        {{ form.tags(size=128) }} <br>
+        {{ form.tags.label(class='form-label') }} <br>
+        {{ form.tags(size=1, class='form-control') }} <br>
         {% for error in form.tags.errors %}
         <span>[{{ error }}]</span>
         {% endfor %}
     </p>
-    <p>{{ form.submit() }}</p>
+    <p>{{ form.submit(class='btn btn-primary') }}</p>
 </form>
 
 
