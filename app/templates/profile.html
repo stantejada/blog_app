@@ -4,6 +4,67 @@
 
 {% block content %}
 
+<div class="container mt-5">
+    <div class="card shadow-sm p-4">
+        <!-- Title Section -->
+        <div class="card-title text-center mb-4">
+            <h1>{{ user.username }}</h1>
+        </div>
 
+        <!-- Profile Info Row -->
+        <div class="row align-items-center">
+            <!-- Profile Image -->
+            <div class="col-md-2 text-center">
+                <img class="img-fluid rounded-circle mb-3" src="{{ user.avatar(128) }}" alt="{{ user.username }}">
+            </div>
+
+
+            <div class="col-md-10">
+
+                <div class="row">
+                    <!-- Bio Section -->
+                    <p class="lead"> <strong>Description: </strong> {{ user.bio or "Empty"}}</p>
+
+                    <!-- Email Section -->
+                    <p class="lead"> <strong>Email: </strong> {{ user.email or "Empty"}}</p>
+
+                    <!-- Role Section -->
+                    <p class="lead">
+                        <strong>Roles: </strong>
+                        {% if user.roles %}
+                        {% for role in user.roles %}
+                        {{ role.name }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        Empty
+                        {% endif %}
+                    </p>
+                    {% if current_user.is_following(user) %}
+                    <a href="{{ url_for('unfollow', username=user.username) }}" class="btn btn-primary">Unfollow</a>
+                    {% elif current_user.username == user.username%}
+                    <p><strong>Followers:</strong> {{ current_user.followers_count() }} | <strong>Followed:</strong> {{
+                        current_user.followed.count() }}</p>
+                    {% else %}
+                    <a href="{{ url_for('follow', username=user.username) }}" class="btn btn-primary">Follow</a>
+
+                    <!-- Followers and Following Counts -->
+                    <p><strong>Followers:</strong> {{ user.followers_count() }} | <strong>Followed:</strong> {{
+                        user.followed.count() }}</p>
+                    {%endif%}
+
+                    {% if current_user.username != user.username%}
+                    <p><strong>Followers:</strong> {{ current_user.followers_count() }} | <strong>Followed:</strong> {{
+                        current_user.followed.count() }}</p>
+                    {%endif%}
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
 
 {% endblock %}

@@ -26,7 +26,15 @@ def role_required(role_name):
 @app.route('/home')
 @login_required
 def home():
-    return render_template('index.html', title='Home')
+    if current_user.is_authenticated:
+        #getting list of ids [followed and user.authenticated]
+        following_ids = [user.id for user in current_user.followed]
+        following_ids.append(current_user.id)
+        
+        #fetch posts from all the ids
+        posts = Post.query.filter(Post.author_id.in_(following_ids)).order_by(Post.create_at.desc()).all()
+
+    return render_template('index.html', title='Home', posts=posts)
 
 #Login user
 @app.route('/login', methods=['GET', 'POST'])
@@ -49,9 +57,11 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 #Profile
-@app.route('/profile')
-def profile():
-    return render_template('profile.html')
+@app.route('/profile/<username>')
+@login_required
+def profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    return render_template('profile.html', user=user, title='Profile')
 
 
 #Register new users
@@ -209,6 +219,45 @@ def new_category():
         flash("Category has been added successfully!","success")
         return redirect(url_for('home'))
     return render_template('create_category.html', form=form)
+
+
+#Follow route
+@app.route('/follow/<username>')
+@login_required
+def follow(username):
+    user_to_follow = User.query.filter_by(username=username).first_or_404()
+    if user_to_follow == current_user:
+        flash('You cannot follow yourself!')
+        return redirect(url_for('profile', username=username))
+    
+    if not current_user.is_following(user_to_follow):
+        current_user.follow(user_to_follow)
+        db.session.commit()
+        flash(f'You are now following {username}!')
+    else:
+         flash(f'You are already following {username}.')
+         
+    return redirect(url_for('profile', username=username))
+
+#Unfollow route
+@app.route('/route/<username>')
+@login_required
+def unfollow(username):
+    user_to_unfollow = User.query.filter_by(username=username).first_or_404()
+    if user_to_unfollow == current_user:
+        flash("You cannot unfollow yourself!")
+        return redirect(url_for('profile', username=username))
+    if current_user.is_following(user_to_unfollow):
+        current_user.unfollow(user_to_unfollow)
+        db.session.commit()
+        flash(f'You have unfollowed {username}')
+    else:
+        flash(f"You are not following {username}")
+        
+    return redirect(url_for("profile", username=username))
+
+
+
 
 @app.route('/logout')
 def logout():

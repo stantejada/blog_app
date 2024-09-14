@@ -24,6 +24,13 @@ user_roles = sa.Table(
     sa.Column('role_id', sa.Integer, sa.ForeignKey('roles.id'), primary_key=True)
 )
 
+followers = sa.Table(
+    'followers',
+    db.Model.metadata,
+    sa.Column('follower_id', sa.Integer, sa.ForeignKey('users.id'), primary_key=True),
+    sa.Column('followed_id', sa.Integer, sa.ForeignKey('users.id'), primary_key=True)
+)
+
 #User models
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -39,7 +46,17 @@ class User(UserMixin, db.Model):
                                                      secondary=user_roles,
                                                      back_populates='users')
     
+    
     posts: so.Mapped[List['Post']] = so.relationship('Post', back_populates='author')
+    
+    followed = so.relationship(
+        'User',
+        secondary='followers',
+        primaryjoin=id==followers.c.follower_id,
+        secondaryjoin=id==followers.c.followed_id,
+        backref='followers',
+        lazy='dynamic'
+    )
     
     def avatar(self, size):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
@@ -61,7 +78,28 @@ class User(UserMixin, db.Model):
     def remove_role(self, role):
         if self.has_role(role.name):
             self.roles.remove(role)
+            
+    #helper methods [follow, followed]
+    def follow(self, user):
+        if not self.is_following(user):
+            self.followed.append(user)
     
+    def unfollow(self, user):
+        if self.is_following(user):
+            self.followed.remove(user)
+    
+    def is_following(self, user):
+        return self.followed.filter_by(id=user.id).first() is not None
+    
+    def followers_count(self):
+        return len(self.followers)
+
+# #Followers
+# class Follower(db.Model):
+#     follower_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('user.id'), primary_key=True)
+#     followed_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('user.id'), primary_key=True)
+
+
 #post Models  
 class Post(db.Model):
     __tablename__ = 'posts'
