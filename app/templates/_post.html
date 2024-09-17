@@ -16,11 +16,14 @@
 
         <!--Category-->
         <p class="mt-4 mb-2">
-            <span class="badget bg-primary">Category: {{ post.category_id }}</span>
+            <span class="badget bg-primary">Category: {{ post.category.name }}</span>
         </p>
 
         <p>
-            <span class="badge bg-secondary">Tags: {{ post.tags }}</span>
+
+            <span>Tags:</span>{% for tag in post.tags %}<span class="badge bg-secondary">{{ tag.name }}</span>{% endfor
+            %}
+
         </p>
 
         {% if current_user.is_authenticated and current_user.id == post.author.id %}

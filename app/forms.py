@@ -48,7 +48,7 @@ class PostForm(FlaskForm):
     
     category_id = SelectField('Category', coerce=int, validators=[Optional()])
     
-    tags = SelectMultipleField('Tags', coerce=int, validators=[Optional()])
+    tags = StringField('Tags', validators=[Optional()])
 
     
     is_published = BooleanField('Publish?')

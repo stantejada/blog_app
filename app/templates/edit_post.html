@@ -8,7 +8,7 @@
     {{ form.hidden_tag() }}
     <p>
         {{ form.title.label(class='form-label') }} <br>
-        {{ form.title(size=32, class='form-cotrol') }} <br>
+        {{ form.title(size=32, class='form-control') }} <br>
         {% for error in form.title.errors %}
         <span>[{{ error }}]</span>
         {% endfor %}

@@ -31,9 +31,10 @@
     </p>
     <p>
         {{ form.tags.label(class='form-label') }} <br>
-        {{ form.tags(size=1, class='form-control') }} <br>
+        <!-- <input type="text" id="tags-input" class="form-control" placeholder="Add tags separated by #"> <br> -->
+        {{ form.tags(class='form-label', id="tags-input", placeholder='Add tags separated by #') }} <br>
         {% for error in form.tags.errors %}
-        <span>[{{ error }}]</span>
+        <span class="text-danger">[{{ error }}]</span>
         {% endfor %}
     </p>
     <p>
@@ -41,6 +42,8 @@
     </p>
     <p>{{ form.submit(class='btn btn-primary') }}</p>
 </form>
+
+
 
 
 {% endblock %}

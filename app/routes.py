@@ -2,7 +2,7 @@ from flask import render_template, redirect, flash, url_for, request, abort
 from app import app, db
 import sqlalchemy as sa
 from app.forms import LoginForm, RegisterForm, PostForm, CategoryForm
-from app.models import User, Role, Post, Category, Tag
+from app.models import User, Role, Post, Category, Tag, Notification
 from flask_login import current_user, login_user, logout_user, login_required
 from urllib.parse import urlsplit
 from functools import wraps
@@ -122,9 +122,10 @@ def new_post():
     
     form.category_id.choices = [(c.id, c.name) for c in Category.query.all()]
     
-    form.tags.choices = [(t.id, t.name) for t in Tag.query.all()]
+   # form.tags.choices = [(t.id, t.name) for t in Tag.query.all()]
     
     if form.validate_on_submit():
+        
         #generate slug from title
         slug = slugify(form.title.data)
         
@@ -132,25 +133,50 @@ def new_post():
         existing_post = Post.query.filter_by(slug=slug).first()
         if existing_post:
             slug = f'{slug}-{int(time.time())}'
-        
+            
+            
         #create post
         post = Post(
             title=form.title.data,
             slug=slug,
             body=form.body.data,
             category_id = form.category_id.data,
-            tags = form.tags.data,
+            #tags = form.tags.data,
             author_id = current_user.id
-        )
+        )        
+    
+        
+        #Process tags
+        raw_tags = form.tags.data
+        tag_list= [tag.strip() for tag in raw_tags.split("#") if tag.strip()]
+        
+        for tag_name in tag_list:
+            tag= Tag.query.filter_by(name=tag_name).first()
+            if not tag:
+                tag = Tag(name=tag_name)
+                db.session.add(tag)
+            post.tags.append(tag)
+        
+
         #Save in DB
         db.session.add(post)
+        
+        followers = current_user.followed
+        
+        for follower in followers:
+            print(follower)
+            notification = Notification(user_id=follower.id, message=f'{current_user.username} has posted a new article: "{post.title}"')
+            db.session.add(notification)
+        
         db.session.commit()
         
         flash('Post created successfully!', 'success')
         return redirect(url_for('home'))
-    else:
-        print(form.errors)
-    return render_template('create_post.html', form=form)
+    
+    all_tags = Tag.query.all()
+    existing_tags = [tag.name for tag in all_tags]
+    
+    return render_template('create_post.html', form=form,  existing_tags=existing_tags)
 
 #Read post by slug
 @app.route('/post/<slug>')
@@ -185,7 +211,23 @@ def update_post(slug):
         post.title = form.title.data
         post.body = form.body.data
         post.category_id = form.category_id.data
-        post.tags = form.tags.data
+        # post.tags = form.tags.data
+        
+        raw_tags = form.tags.data
+        if raw_tags:
+            tag_list= [tag.strip() for tag in raw_tags.split("#") if tag.strip()]
+            
+            post.tags=[]
+        
+            for tag_name in tag_list:
+                tag= Tag.query.filter_by(name=tag_name).first()
+                if not tag:
+                    tag = Tag(name=tag_name)
+                    db.session.add(tag)
+                post.tags.append(tag)
+        
+        
+        
         db.session.commit()
         flash('Post updated successfully!', 'success')
         return redirect(url_for('home', id=post.id))
@@ -240,7 +282,7 @@ def follow(username):
     return redirect(url_for('profile', username=username))
 
 #Unfollow route
-@app.route('/route/<username>')
+@app.route('/unfollow/<username>')
 @login_required
 def unfollow(username):
     user_to_unfollow = User.query.filter_by(username=username).first_or_404()
@@ -256,7 +298,11 @@ def unfollow(username):
         
     return redirect(url_for("profile", username=username))
 
-
+@app.route('/notifications')
+@login_required
+def notifications():
+    user_notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.timestamp.desc()).all()
+    return render_template('notifications.html', notifications=user_notifications)
 
 
 @app.route('/logout')

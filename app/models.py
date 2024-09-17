@@ -58,6 +58,10 @@ class User(UserMixin, db.Model):
         lazy='dynamic'
     )
     
+    notifications: so.Mapped[List['Notification']] = so.relationship('Notification', back_populates='user')
+
+    
+    
     def avatar(self, size):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return f"https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}"
@@ -94,11 +98,6 @@ class User(UserMixin, db.Model):
     def followers_count(self):
         return len(self.followers)
 
-# #Followers
-# class Follower(db.Model):
-#     follower_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('user.id'), primary_key=True)
-#     followed_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('user.id'), primary_key=True)
-
 
 #post Models  
 class Post(db.Model):
@@ -109,7 +108,7 @@ class Post(db.Model):
     slug: so.Mapped[str] = so.mapped_column(sa.String(255), unique=True, nullable=False)
     body: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
     create_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=lambda: datetime.now(timezone.utc))
-    update_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=timezone.utc)
+    update_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     published_at: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime)
     is_published: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
     
@@ -121,6 +120,9 @@ class Post(db.Model):
     
     #relacion de muchos a muchos
     tags: so.Mapped[List['Tag']] = so.relationship('Tag', secondary=post_tags, back_populates='posts')
+    
+    notifications: so.Mapped[List['Notification']] = so.relationship('Notification', back_populates='post')
+
 
 #Automatically generate slug before saving
 @event.listens_for(Post, 'before_insert')
@@ -152,7 +154,7 @@ class Tag(db.Model):
     name: so.Mapped[str] = so.mapped_column(sa.String(100), nullable=False, unique=True)
     
     posts: so.Mapped[List['Post']] = so.relationship('Post', secondary=post_tags, back_populates='tags')
-    
+
 class Role(db.Model):
     __tablename__ ='roles'
     
@@ -162,6 +164,22 @@ class Role(db.Model):
     
     #many to many
     users: so.Mapped[List['User']] = so.relationship('User', secondary=user_roles, back_populates='roles')
+    
+    
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    
+    id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key=True)
+    user_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('users.id'))
+    post_id: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer, sa.ForeignKey('posts.id'))
+    message: so.Mapped[str] = so.mapped_column(sa.String(255))
+    is_read: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
+    timestamp: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    user: so.Mapped['User'] = so.relationship('User', back_populates='notifications')
+    post: so.Mapped['Post'] = so.relationship('Post', back_populates='notifications')
+
+
 
 @login.user_loader
 def load_user(id):
